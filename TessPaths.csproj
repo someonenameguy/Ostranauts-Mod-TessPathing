@@ -1,0 +1,73 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>TessPaths</AssemblyName>
+    <Description>Advanced pathfinding optimization mod for Ostranauts. Replaces default JPS with a Weighted A* search that handles decompression and door hazards, and correctly prioritizes grounded ship tiles over empty space/void.</Description>
+    <Version>1.1.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <!-- Import local game path properties from workspace root or project root -->
+  <Import Project="..\GamePath.props" Condition="Exists('..\GamePath.props')" />
+  <Import Project="GamePath.props" Condition="Exists('GamePath.props') And !Exists('..\GamePath.props')" />
+
+  <PropertyGroup>
+    <!-- Fallback default path if GamePath.props is missing -->
+    <GameFolder Condition="'$(GameFolder)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Ostranauts</GameFolder>
+    <ManagedFolder>$(GameFolder)\Ostranauts_Data\Managed</ManagedFolder>
+    <PluginsFolder>$(GameFolder)\BepInEx\plugins</PluginsFolder>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- BepInEx 5 NuGet Packages -->
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
+    <!-- HarmonyX is BepInEx 5's upgraded Harmony implementation -->
+    <PackageReference Include="HarmonyX" Version="2.7.0" />
+    <!-- Reference Assemblies allow building .NET Framework 4.7.2 on machines without full .NET SDK installed -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Conditionally reference Ostranauts Game DLLs if the game folder exists -->
+    <Reference Include="Assembly-CSharp" Condition="Exists('$(ManagedFolder)\Assembly-CSharp.dll')">
+      <HintPath>$(ManagedFolder)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass" Condition="Exists('$(ManagedFolder)\Assembly-CSharp-firstpass.dll')">
+      <HintPath>$(ManagedFolder)\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine" Condition="Exists('$(ManagedFolder)\UnityEngine.dll')">
+      <HintPath>$(ManagedFolder)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule" Condition="Exists('$(ManagedFolder)\UnityEngine.CoreModule.dll')">
+      <HintPath>$(ManagedFolder)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI" Condition="Exists('$(ManagedFolder)\UnityEngine.UI.dll')">
+      <HintPath>$(ManagedFolder)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.InputSystem" Condition="Exists('$(ManagedFolder)\Unity.InputSystem.dll')">
+      <HintPath>$(ManagedFolder)\Unity.InputSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro" Condition="Exists('$(ManagedFolder)\Unity.TextMeshPro.dll')">
+      <HintPath>$(ManagedFolder)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Post-build event to copy the compiled mod DLL to BepInEx plugins folder -->
+  <Target Name="CopyToPlugins" AfterTargets="Build" Condition="Exists('$(PluginsFolder)')">
+    <Message Text="Copying TessPaths.dll to BepInEx plugins..." Importance="high" />
+    <Copy SourceFiles="$(OutputPath)TessPaths.dll" DestinationFolder="$(PluginsFolder)" />
+    <Message Text="Copied successfully!" Importance="high" />
+  </Target>
+
+</Project>
